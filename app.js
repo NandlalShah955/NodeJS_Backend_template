@@ -10,8 +10,10 @@ const DATABASE_URL = process.env.DATABASE_URL;
 
 // For using Cors 
 app.use(cors());
+
 // For connecting Database 
 connectdb(DATABASE_URL);
+
 // Basic route 
 app.get('/ping',(req,res)=>{
     console.log("heelo");
