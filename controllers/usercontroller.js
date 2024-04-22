@@ -1,6 +1,7 @@
 import UserDataModel from "../models/usermodel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import Helper from "../helpers/helper.js";
 
 class UserController {
   // Function for Registering the User in the database
@@ -27,6 +28,9 @@ class UserController {
             });
             await doc.save();
             let saved_user = await UserDataModel.findOne({ email: email });
+            // Without using BsonToJsonConverter method you will not be able to use any method in data you are getting 
+            // from mongodb you have convert it first 
+            saved_user = Helper.BsonToJsonConverter(saved_user);
             const secret = saved_user._id + process.env.JWT_SECRET_KEY;
             const vefication_token = jwt.sign(
               { userID: saved_user._id },
