@@ -55,11 +55,6 @@ class UserController {
               message: "Registration Success",
               token: token,
             });
-            await UserActivityModel.create({
-              tenantid: saved_user._id,
-            });
-            // For Sending Details to Wordpress site
-            await RegisterApi(req, saved_user);
           } catch (error) {
             console.log(error);
             res
@@ -73,7 +68,56 @@ class UserController {
   };
 
   // Function for Login of the User
-  static userLogin = async () => {};
+  static userLogin = async (req, res) => {
+   
+    try {
+      const { email, password } = req.body;
+      if (email && password) {
+        const user = await UserDataModel.findOne({ email: email });
+        if (user != null) {
+          if (user.account_verification_status == 1) {
+            const isMatch = await bcrypt.compare(password, user.password);
+            if (user.email === email && isMatch) {
+              // Generate the JWT
+              const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {
+                expiresIn: "5d",
+              });
+          
+
+              res.send({
+                status: "success",
+                message: "Login Success",
+                token: token,
+              });
+            } else {
+              res.status(400).send({
+                status: "failed",
+                message: "Email or Password is not Valid",
+              });
+            }
+          } else {
+            res.status(400).send({
+              status: "failed",
+              message: "Please check your email to verify your account",
+            });
+          }
+        } else {
+          res.status(401).send({
+            status: "failed",
+            message:
+              "This email is not registered with us, please register now!",
+          });
+        }
+      } else {
+        res
+          .status(400)
+          .send({ status: "failed", message: "All Fields are Required" });
+      }
+    } catch (error) {
+      console.log(error)
+      res.status(401).send({ status: "failed", message: "Unable to Login" });
+    }
+  };
 }
 
 export default UserController;
